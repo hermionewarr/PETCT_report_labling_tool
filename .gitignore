@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Review output can contain report text once you point at real predictions.
+labels/*.csv
