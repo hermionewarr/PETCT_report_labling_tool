@@ -1,4 +1,4 @@
-# PET/CT report labeling tool
+# PET/CT report labelling tool
 
 Point it at reports and a trained inconsistency BERT, then review the reports the model flagged.
 
@@ -28,4 +28,7 @@ All settings live in `paths.py`.
 
 Reports need `findings` and `conclusion`. `patient_id` and `source_idx` are optional. A gold label (`true_label_name` or `error_type`) is optional. Without one, the page reviews every report the model called inconsistent.
 
-`ONLY_GOLD_FALSE_POSITIVES = True` limits the review to gold-consistent reports the model still flagged.
+## UI 
+
+<img width="750" height="300" alt="image" src="https://github.com/user-attachments/assets/9c6b28db-8620-4635-a99f-86b0acbc11f0" />
+
