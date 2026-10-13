@@ -1,5 +1,0 @@
-patient_id,source_idx,findings,conclusion,error_type,incidence,true_label,pred_label,true_label_name,pred_label_name,prob_inconsistent,prob_consistent,is_correct,is_tp0,is_fp0,is_fn0,is_tn0
-dummy-patient-01,0,"Mild FDG uptake in the left upper lobe. The right lung is clear. The liver is unremarkable.","Mild right upper lobe uptake. The left lung and liver are unremarkable.",consistent,0,1,0,consistent,inconsistent,0.97,0.03,0,0,1,0,0
-dummy-patient-02,1,"Mild FDG uptake in the left upper lobe. No uptake in the right lung.","Mild left upper lobe uptake. The right lung is clear.",consistent,0,1,0,consistent,inconsistent,0.81,0.19,0,0,1,0,0
-dummy-patient-03,2,"Severe uptake in a left apical lung mass. The right apex is clear.","Mild left apical lung uptake. Right apex clear.",consistent,0,1,0,consistent,inconsistent,0.93,0.07,0,0,1,0,0
-dummy-patient-04,3,"Intense uptake in the liver. The lung bases are clear.","Intense hepatic uptake. Lung bases are clear.",consistent,1,1,0,consistent,inconsistent,0.64,0.36,0,0,1,0,0

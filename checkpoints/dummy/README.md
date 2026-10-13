@@ -1,4 +1,3 @@
-Placeholder directory. No model weights are stored here.
+Placeholder checkpoint. `dummy_model.json` marks this directory as the keyword stand-in, not the paper BERT.
 
-Point `MODEL_CHECKPOINT` in `label_reports.py` at a real BERT run when you have one.
-The labeling page does not load the checkpoint. It records this path next to each saved label.
+`run_detection.py` refuses any other folder until a real checkpoint loader is added. Point `MODEL_CHECKPOINT` in `paths.py` at that folder when it exists.

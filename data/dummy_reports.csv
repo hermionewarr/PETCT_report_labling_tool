@@ -1,0 +1,7 @@
+patient_id,source_idx,findings,conclusion,true_label_name,error_type
+dummy-patient-01,0,"Mild FDG uptake in the left upper lobe. The right lung is clear. The liver is unremarkable.","Mild right upper lobe uptake. The left lung and liver are unremarkable.",,
+dummy-patient-02,1,"Mild FDG uptake in the left upper lobe. No uptake in the right lung.","Mild left upper lobe uptake. The right lung is clear.",,
+dummy-patient-03,2,"Severe uptake in a left apical lung mass. The right apex is clear.","Mild left apical lung uptake. Right apex clear.",,
+dummy-patient-04,3,"Intense uptake in the liver. The lung bases are clear.","Intense hepatic uptake. Lung bases are clear.",,
+dummy-patient-05,4,"FDG-avid nodule in the right lower lobe. The left lung is clear.","Left lower lobe nodule. The right lung is clear.",,
+dummy-patient-06,5,"Mild uptake along the pleural surface. The parenchymal lung is clear.","Severe pleural uptake. Parenchymal lung clear.",,

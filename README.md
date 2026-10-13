@@ -1,30 +1,33 @@
 # PET/CT report labeling tool
 
-Local page for marking model false positives as **error**, **no error**, or **unclear**.
+Download this, point it at a reports file, and review what the error-detection model flagged.
 
-The dummy input matches the columns written by a BERT-6 inconsistency run (`predictions.csv`). No clinical reports and no trained weights are included.
-
-## Run
+Two steps, both local. Nothing is sent off the machine.
 
 ```bash
-cd /path/to/PETCT_report_labling_tool
-python label_reports.py
+python run_detection.py    # findings + conclusion -> predictions CSV
+python label_reports.py    # review the flagged reports in the browser
 ```
 
-Open the URL it prints (default http://127.0.0.1:8766/).
+Open the URL the second command prints (default http://127.0.0.1:8766/).
 
 Keys: `1` error, `0` no error, `x` unclear, `u` undo.
 
-## Point at your files
+A label of **error** means the findings and conclusion really disagree. **No error** means the model flag was a false alarm. The counts are the readout of the model's flags.
 
-Edit the three paths at the top of `label_reports.py`:
+## What to edit
+
+All paths live in `paths.py`.
 
 | Name | Dummy default | Replace with |
 |---|---|---|
-| `DATA_CSV` | `data/dummy_bert6_predictions.csv` | BERT predictions CSV |
-| `MODEL_CHECKPOINT` | `checkpoints/dummy` | Run directory or `model/` checkpoint |
-| `LABEL_OUTPUT_CSV` | `labels/fp_labels.csv` | Where saved labels should go |
+| `REPORTS_CSV` | `data/dummy_reports.csv` | Your reports, or a set we give you |
+| `MODEL_CHECKPOINT` | `checkpoints/dummy` | Trained weights, once that loader exists |
+| `PREDICTIONS_CSV` | `data/predictions.csv` | Where model output should be written |
+| `LABEL_OUTPUT_CSV` | `labels/fp_labels.csv` | Where review labels should be written |
 
-`ONLY_FALSE_POSITIVES = True` keeps rows with `is_fp0` of 1 (gold consistent, model called inconsistent). Set it to `False` to label every row in the CSV.
+Reports need `findings` and `conclusion` (`Findings` and `Conclusion` are also accepted). `patient_id` and `source_idx` are optional. A gold label (`true_label_name` or `error_type`) is optional. Without one, the page reviews every report the model called inconsistent.
 
-The checkpoint path is stored on each saved row. The page does not load the weights.
+The checkpoint in this repo is a stand-in. It flags a report only when findings and conclusion disagree on left/right or mild/severe. It writes the same columns as a BERT-6 `predictions.csv`. Pointing `MODEL_CHECKPOINT` at a real run will stop with an error until that loader is added, so the stand-in is not silently used on real weights.
+
+`ONLY_GOLD_FALSE_POSITIVES = True` limits the review to gold-consistent reports the model still flagged. That needs a gold column.

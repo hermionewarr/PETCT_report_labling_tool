@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Label BERT false-positive reports as error, no error, or unclear.
+"""Review reports the error-detection model called inconsistent.
 
-Edit the three paths below, then:
+Run python run_detection.py first, then:
 
     python label_reports.py
 
 Open the printed URL. Keys: 1 = error, 0 = no error, x = unclear, u = undo.
+Edit paths in paths.py.
 """
 from __future__ import annotations
 
@@ -20,39 +21,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
-REPO_ROOT = Path(__file__).resolve().parent
-
-# ---------------------------------------------------------------------------
-# Edit these paths.
-# ---------------------------------------------------------------------------
-DATA_CSV = REPO_ROOT / "data" / "dummy_bert6_predictions.csv"
-MODEL_CHECKPOINT = REPO_ROOT / "checkpoints" / "dummy"
-LABEL_OUTPUT_CSV = REPO_ROOT / "labels" / "fp_labels.csv"
-# True: only rows the model called inconsistent when the gold label is consistent.
-ONLY_FALSE_POSITIVES = True
-HOST = "127.0.0.1"
-PORT = 8766
-# ---------------------------------------------------------------------------
-
-PREDICTION_COLUMNS = [
-    "patient_id",
-    "source_idx",
-    "findings",
-    "conclusion",
-    "error_type",
-    "incidence",
-    "true_label",
-    "pred_label",
-    "true_label_name",
-    "pred_label_name",
-    "prob_inconsistent",
-    "prob_consistent",
-    "is_correct",
-    "is_tp0",
-    "is_fp0",
-    "is_fn0",
-    "is_tn0",
-]
+from paths import (
+    HOST,
+    LABEL_OUTPUT_CSV,
+    MODEL_CHECKPOINT,
+    ONLY_GOLD_FALSE_POSITIVES,
+    PORT,
+    PREDICTION_COLUMNS,
+    PREDICTIONS_CSV,
+)
 LABEL_COLUMNS = PREDICTION_COLUMNS + [
     "human_label",
     "review_note",
@@ -83,6 +60,13 @@ def _write_csv(path: Path, rows: List[Dict[str, Any]]) -> None:
             writer.writerow({name: row.get(name, "") for name in LABEL_COLUMNS})
 
 
+def _model_flagged(row: Dict[str, str]) -> bool:
+    name = str(row.get("pred_label_name", "")).strip().lower()
+    if name:
+        return name == "inconsistent"
+    return str(row.get("pred_label", "")).strip() == "0"
+
+
 def _is_false_positive(row: Dict[str, str]) -> bool:
     if str(row.get("is_fp0", "")).strip() in {"1", "1.0", "true", "True"}:
         return True
@@ -102,12 +86,15 @@ def highlight_laterality(text: str) -> str:
 
 def load_queue(data_csv: Path, labels_csv: Path) -> Tuple[List[Dict[str, str]], List[Dict[str, str]]]:
     if not data_csv.is_file():
-        raise SystemExit(f"Predictions CSV not found: {data_csv}")
+        raise SystemExit(
+            f"Predictions CSV not found: {data_csv}\nRun: python run_detection.py"
+        )
     rows = _read_csv(data_csv)
     missing = [name for name in ("patient_id", "source_idx", "findings", "conclusion") if name not in (rows[0] if rows else {})]
     if rows and missing:
         raise SystemExit(f"{data_csv} is missing columns: {', '.join(missing)}")
-    if ONLY_FALSE_POSITIVES:
+    rows = [row for row in rows if _model_flagged(row)]
+    if ONLY_GOLD_FALSE_POSITIVES:
         rows = [row for row in rows if _is_false_positive(row)]
     saved = _read_csv(labels_csv) if labels_csv.is_file() else []
     saved_by_key = {_row_key(row): row for row in saved}
@@ -150,10 +137,16 @@ class ReviewSession:
                 "conclusion_html": highlight_laterality(row.get("conclusion", "")),
             }
         reviewed = sum(1 for row in self.queue if str(row.get("human_label", "")).strip())
+        label_counts = {"error": 0, "no_error": 0, "unclear": 0}
+        for row in self.queue:
+            label = str(row.get("human_label", "")).strip()
+            if label in label_counts:
+                label_counts[label] += 1
         return {
             "total": len(self.queue),
             "reviewed": reviewed,
             "remaining": len(self.queue) - reviewed,
+            "label_counts": label_counts,
             "undo_available": bool(self.undo_stack),
             "current": current,
             "data_csv": str(self.data_csv),
@@ -281,8 +274,11 @@ function noteValue() {
 }
 function render() {
   if (!state) return;
-  if (!state.current) {
-    app.innerHTML = `<div class="done"><p>All ${state.total} reports are labeled.</p><p>Saved to<br><code>${state.label_output_csv}</code></p></div>`;
+    if (!state.current) {
+    const counts = state.label_counts || {};
+    app.innerHTML = `<div class="done"><p>All ${state.total} flagged reports are labeled.</p>
+      <p>error ${counts.error || 0} · no error ${counts.no_error || 0} · unclear ${counts.unclear || 0}</p>
+      <p>Saved to<br><code>${state.label_output_csv}</code></p></div>`;
     return;
   }
   const row = state.current;
@@ -297,7 +293,7 @@ function render() {
       <div>checkpoint <code>${state.model_checkpoint}</code>${checkpointNote}</div>
     </div>
     <div class="banner">
-      <div>Gold ${row.true_label_name || row.true_label} · model ${row.pred_label_name || row.pred_label}</div>
+      <div>Gold ${row.true_label_name || row.true_label || 'none'} · model ${row.pred_label_name || row.pred_label}</div>
       <div>P(inconsistent) ${Number(row.prob_inconsistent || 0).toFixed(3)} · ${row.error_type || ''}</div>
     </div>
     <div class="cols">
@@ -423,10 +419,10 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=PORT)
     parser.add_argument("--host", default=HOST)
     args = parser.parse_args()
-    session = ReviewSession(DATA_CSV, LABEL_OUTPUT_CSV, MODEL_CHECKPOINT)
+    session = ReviewSession(PREDICTIONS_CSV, LABEL_OUTPUT_CSV, MODEL_CHECKPOINT)
     server = ThreadingHTTPServer((args.host, args.port), make_handler(session))
     url = f"http://{args.host}:{args.port}/"
-    print(f"Labeling {len(session.queue)} reports from {DATA_CSV}")
+    print(f"Labeling {len(session.queue)} model-flagged reports from {PREDICTIONS_CSV}")
     print(f"Checkpoint path (not loaded): {MODEL_CHECKPOINT}")
     print(f"Labels will be written to {LABEL_OUTPUT_CSV}")
     print(f"Open {url}")

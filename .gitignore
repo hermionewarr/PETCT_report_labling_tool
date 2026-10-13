@@ -3,5 +3,6 @@ __pycache__/
 .venv/
 venv/
 
-# Review output can contain report text once you point at real predictions.
+# Generated once you point at real reports. Both can contain report text.
+data/predictions.csv
 labels/*.csv
