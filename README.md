@@ -1,6 +1,8 @@
 # PET/CT report labelling tool
 
-Point it at reports and a trained inconsistency BERT, then review the reports the model flagged.
+Made for the paper: [Error Detection for PET/CT Radiology Reports: Domain-Specific vs Large Language Models](https://arxiv.org/pdf/2608.30021)
+
+Point labelling tool at reports and a trained inconsistency BERT, then review the reports the model flagged.
 
 ```bash
 python run_detection.py    # findings + conclusion -> predictions CSV
