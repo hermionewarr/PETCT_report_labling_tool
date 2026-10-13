@@ -1,5 +1,0 @@
-{
-  "type": "dummy",
-  "name": "keyword-mismatch-stand-in",
-  "note": "Not the paper BERT. Flags a report when findings and conclusion disagree on left/right or mild/severe."
-}

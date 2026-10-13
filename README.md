@@ -1,33 +1,31 @@
 # PET/CT report labeling tool
 
-Download this, point it at a reports file, and review what the error-detection model flagged.
-
-Two steps, both local. Nothing is sent off the machine.
+Point it at reports and a trained inconsistency BERT, then review the reports the model flagged.
 
 ```bash
 python run_detection.py    # findings + conclusion -> predictions CSV
-python label_reports.py    # review the flagged reports in the browser
+python label_reports.py    # review flagged reports in the browser
 ```
 
 Open the URL the second command prints (default http://127.0.0.1:8766/).
 
 Keys: `1` error, `0` no error, `x` unclear, `u` undo.
 
-A label of **error** means the findings and conclusion really disagree. **No error** means the model flag was a false alarm. The counts are the readout of the model's flags.
-
 ## What to edit
 
-All paths live in `paths.py`.
+All settings live in `paths.py`.
 
-| Name | Dummy default | Replace with |
-|---|---|---|
-| `REPORTS_CSV` | `data/dummy_reports.csv` | Your reports, or a set we give you |
-| `MODEL_CHECKPOINT` | `checkpoints/dummy` | Trained weights, once that loader exists |
-| `PREDICTIONS_CSV` | `data/predictions.csv` | Where model output should be written |
-| `LABEL_OUTPUT_CSV` | `labels/fp_labels.csv` | Where review labels should be written |
+| Name | Replace with |
+|---|---|
+| `REPORTS_CSV` | Findings and conclusion file. Dummy rows are `data/dummy_reports.csv` |
+| `MODEL_CHECKPOINT` | Trained model folder (`config.json` and `cls_classifier.pt`) |
+| `MODEL_SIZE` | `4`/`small`, `6`/`big`, `8`/`8L`, or `12`/`12L` |
+| `SEQ_LENGTH` | Length that checkpoint was trained with (600 for the paper runs) |
+| `PREDICTIONS_CSV` | Where predictions are written |
+| `LABEL_OUTPUT_CSV` | Where review labels are written |
 
-Reports need `findings` and `conclusion` (`Findings` and `Conclusion` are also accepted). `patient_id` and `source_idx` are optional. A gold label (`true_label_name` or `error_type`) is optional. Without one, the page reviews every report the model called inconsistent.
+`MODEL_CHECKPOINT` currently points at `checkpoints/dummy`, which is empty. `run_detection.py` stops until that path is a real checkpoint.
 
-The checkpoint in this repo is a stand-in. It flags a report only when findings and conclusion disagree on left/right or mild/severe. It writes the same columns as a BERT-6 `predictions.csv`. Pointing `MODEL_CHECKPOINT` at a real run will stop with an error until that loader is added, so the stand-in is not silently used on real weights.
+Reports need `findings` and `conclusion`. `patient_id` and `source_idx` are optional. A gold label (`true_label_name` or `error_type`) is optional. Without one, the page reviews every report the model called inconsistent.
 
-`ONLY_GOLD_FALSE_POSITIVES = True` limits the review to gold-consistent reports the model still flagged. That needs a gold column.
+`ONLY_GOLD_FALSE_POSITIVES = True` limits the review to gold-consistent reports the model still flagged.
