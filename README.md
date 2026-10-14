@@ -34,6 +34,3 @@ Reports need `findings` and `conclusion`. `patient_id` and `source_idx` are opti
 
 <img width="750" height="300" alt="image" src="https://github.com/user-attachments/assets/9c6b28db-8620-4635-a99f-86b0acbc11f0" />
 
-## Paper
-
-Made for the paper: [Error Detection for PET/CT Radiology Reports:Domain-Specific vs Large Language Models](https://arxiv.org/pdf/2608.30021)
